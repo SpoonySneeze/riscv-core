@@ -1,0 +1,9 @@
+/work/*
+*.xpr
+*.log
+*.jou
+*.str
+*.srcs/
+*.sim/
+*.runs/
+.Xil/
