@@ -3,4 +3,5 @@ module alu (
     output [31:0] result
 );
 // Test comment for Git
+//git test
 endmodule
