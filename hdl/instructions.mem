@@ -1,0 +1,7 @@
+00000093 // 1. ADDI x1, x0, 0   (Sum = 0)
+00500113 // 2. ADDI x2, x0, 5   (Count = 5)
+002080b3 // 3. ADD  x1, x1, x2  <-- LABEL: LOOP (PC = 0x08)
+fff10113 // 4. ADDI x2, x2, -1  (Count--)
+00010263 // 5. BEQ  x2, x0, 4   (If Zero, skip next instruction. Target = 0x18)
+fe0008e3 // 6. BEQ  x0, x0, -16 (Jump back to 0x08. Target = 0x08)
+00102023 // 7. SW   x1, 0(x0)   <-- LABEL: EXIT (PC = 0x18)
