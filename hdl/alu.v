@@ -26,7 +26,7 @@
 module alu(
     input wire [31:0] a,
     input wire [31:0] b,
-    input wire [3:0] alu_control,
+    input wire [4:0] alu_control,
     output reg [31:0] result,
     output wire zero
 );
@@ -34,11 +34,16 @@ module alu(
     // Combinational block to calculate the result based on the control signal.
     always @(*) begin
         case (alu_control)
-            4'b0000: result = a & b;  // AND
-            4'b0001: result = a | b;  // OR
-            4'b0010: result = a + b;  // ADD
-            4'b0110: result = a - b;  // SUBTRACT
-            4'b0111: result = (a < b) ? 32'd1 : 32'd0; // Set on Less Than
+            5'b00000: result = a + b;  // ADD
+            5'b00001: result = a - b;  // SUBSTRACT
+            5'b10001: result = a << b[4:0];  // SHIFT LEFT
+            5'b10100: result = ($signed(a) < $signed(b)) ? 32'd1 : 32'd0;  // Set Less Than (Signed)
+            5'b10101: result = (a < b) ? 32'd1 : 32'd0; // Set on Less Than (Unsigned)
+            5'b00100: result = a ^ b; // XOR
+            5'b10110: result = a >> b[4:0]; // Shift Right Logical
+            5'b10111: result = $signed(a) >>> b[4:0]; // Shift Right Arthematic
+            5'b00110: result = a | b; //OR
+            5'b00111: result = a & b; //AND
             default: result = 32'b0; // Default to 0 to avoid latches
         endcase
     end

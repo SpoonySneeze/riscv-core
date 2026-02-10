@@ -23,41 +23,46 @@
 // This module decodes the immediate value from an instruction word.
 // It extracts the correct bits based on the instruction format (I, S, B)
 // and sign-extends the result to 32 bits.
+
 module immediate_generator(
     input wire [31:0] instruction,
     output reg [31:0] immediate
 );
 
-    // This is a combinational block that reacts instantly to changes
-    // in the instruction input.
     always @(*) begin
-        // The case statement uses the opcode to determine the format.
         case (instruction[6:0])
-            // I-type instructions: lw (load word) and addi (add immediate)
+            // I-Type: LW, ADDI, JALR
             7'b0000011, // lw
-            7'b0010011: begin // addi
-                // Concatenate the sign bit (repeated 20 times) with the 12 immediate bits.
+            7'b0010011, // addi
+            7'b1100111: begin // jalr (I-Type)
                 immediate = {{20{instruction[31]}}, instruction[31:20]};
             end
 
-            // S-type instruction: sw (store word)
-            7'b0100011: begin // sw
-                // Reassemble the split immediate and then sign-extend.
+            // S-Type: SW
+            7'b0100011: begin 
                 immediate = {{20{instruction[31]}}, instruction[31:25], instruction[11:7]};
             end
 
-            // B-type instruction: beq (branch if equal)
-            7'b1100011: begin // beq
-                // Reassemble the scattered immediate bits and then sign-extend from 13 to 32 bits.
+            // B-Type: BEQ, BNE, BLT...
+            7'b1100011: begin 
                 immediate = {{19{instruction[31]}}, instruction[31], instruction[7], instruction[30:25], instruction[11:8], 1'b0};
             end
+            
+            // J-Type: JAL
+            7'b1101111: begin
+                // J-immediate is scrambled: imm[20], imm[10:1], imm[11], imm[19:12]
+                immediate = {{12{instruction[31]}}, instruction[19:12], instruction[20], instruction[30:21], 1'b0};
+            end
+            
+            // U-Type: LUI, AUIPC
+            7'b0110111, // LUI
+            7'b0010111: begin // AUIPC
+                immediate = {instruction[31:12], 12'b0};
+            end
 
-            // Default case for all other instructions (like R-type)
-            // Outputting zero is a safe default.
             default: begin
                 immediate = 32'b0;
             end
         endcase
     end
-
 endmodule

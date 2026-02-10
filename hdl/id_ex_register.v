@@ -14,18 +14,15 @@
 // Dependencies: 
 // 
 // Revision:
-// Revision 0.01 - File Created
+// Revision 0.02 - Added op_a_sel and Jump signals
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
-// This module is the pipeline register between the Instruction Decode (ID)
-// and Execute (EX) stages. It is the widest register, as it carries all
-// control signals, register data, and immediate values needed for execution.
 module id_ex_register(
     input wire clk,
     input wire reset,
+    input wire flush,
 
     // --- Inputs from ID Stage ---
 
@@ -37,6 +34,8 @@ module id_ex_register(
     
     // Control Signals (for the EX Stage)
     input wire id_Branch,
+    input wire id_Jump,      
+    input wire [1:0] id_op_a_sel, // <--- NEW: Operand A Selection
     input wire id_ALUSrc,
     input wire [1:0] id_ALUOp,
 
@@ -51,12 +50,9 @@ module id_ex_register(
     input wire [31:0] id_pc_plus_4,
 
     // Housekeeping/Forwarding Data
-    input wire [4:0] id_rd,          // Destination register address
+    input wire [4:0] id_rd,
     input wire [2:0] id_funct3,
     input wire [6:0] id_funct7,
-
-    // BEQ Control hazard signal
-    input wire flush,
     
     // --- Outputs to EX Stage ---
 
@@ -64,6 +60,8 @@ module id_ex_register(
     output reg ex_RegWrite,
     output reg ex_MemtoReg,
     output reg ex_Branch,
+    output reg ex_Jump,      
+    output reg [1:0] ex_op_a_sel, // <--- NEW
     output reg ex_MemRead,
     output reg ex_MemWrite,
     output reg ex_ALUSrc,
@@ -86,11 +84,13 @@ module id_ex_register(
 );
 
     always @(posedge clk) begin
-        if (reset) begin
-            // On reset, clear all control signals and data to a safe, known state (0).
+        if (reset || flush) begin
+            // Reset state
             ex_RegWrite <= 1'b0;
             ex_MemtoReg <= 1'b0;
             ex_Branch   <= 1'b0;
+            ex_Jump     <= 1'b0;
+            ex_op_a_sel <= 2'b00; // Default to RS1
             ex_MemRead  <= 1'b0;
             ex_MemWrite <= 1'b0;
             ex_ALUSrc   <= 1'b0;
@@ -102,36 +102,17 @@ module id_ex_register(
             ex_rs1 <= 5'b0;
             ex_rs2 <= 5'b0;
             ex_pc_plus_4   <= 32'b0;
-
             ex_rd       <= 5'b0;
             ex_funct3   <= 3'b0;
             ex_funct7   <= 7'b0;
         end
-        else if (flush) begin
-            ex_RegWrite <= 1'b0;
-            ex_MemtoReg <= 1'b0;
-            ex_Branch   <= 1'b0;
-            ex_MemRead  <= 1'b0;
-            ex_MemWrite <= 1'b0;
-            ex_ALUSrc   <= 1'b0;
-            ex_ALUOp    <= 2'b0;
-
-            ex_read_data_1 <= 0;
-            ex_read_data_2 <= 0;
-            ex_immediate   <= 0;
-            ex_rs1 <= id_rs1;
-            ex_rs2 <= id_rs2;
-            ex_pc_plus_4   <= id_pc_plus_4;
-            
-            ex_rd       <= id_rd;
-            ex_funct3   <= id_funct3;
-            ex_funct7   <= id_funct7;
-        end
         else begin
-            // In normal operation, latch all inputs from the ID stage.
+            // Pass through
             ex_RegWrite <= id_RegWrite;
             ex_MemtoReg <= id_MemtoReg;
             ex_Branch   <= id_Branch;
+            ex_Jump     <= id_Jump;
+            ex_op_a_sel <= id_op_a_sel; // Pass NEW signal
             ex_MemRead  <= id_MemRead;
             ex_MemWrite <= id_MemWrite;
             ex_ALUSrc   <= id_ALUSrc;
@@ -143,7 +124,6 @@ module id_ex_register(
             ex_rs1 <= id_rs1;
             ex_rs2 <= id_rs2;
             ex_pc_plus_4   <= id_pc_plus_4;
-            
             ex_rd       <= id_rd;
             ex_funct3   <= id_funct3;
             ex_funct7   <= id_funct7;
