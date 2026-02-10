@@ -1,4 +1,4 @@
-*.sync
+
 /work/*
 *.xpr
 *.log
