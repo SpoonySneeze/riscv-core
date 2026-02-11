@@ -35,24 +35,18 @@ jobs:
         cd compliance
         
         # --- SAFE SETUP START ---
-        # 1. Make a temporary folder so 'riscof setup' doesn't overwrite YOUR files
         mkdir temp_setup
         cd temp_setup
-        
-        # 2. Generate the Reference Plugin (Sail) here
-        # We use 'dummy' for the DUT name because we don't care about it here, we only want sail_cSim
         riscof setup --dutname=dummy --refname=sail_cSim
         cd ..
-        
-        # 3. Move ONLY the 'sail_cSim' folder to your main directory
         mv temp_setup/sail_cSim .
-        
-        # 4. Clean up
         rm -rf temp_setup
         # --- SAFE SETUP END ---
 
-        # 5. Run the tests using YOUR existing config.ini
-        # We added --no-browser so it doesn't try to open a web page in the cloud
+        # FIX: Add current directory to Python Path so it finds 'sail_cSim'
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+        # Run
         riscof run --config=config.ini --suite=../riscv-arch-test/riscv-test-suite/ --env=../riscv-arch-test/riscv-test-suite/env --no-browser
 
     # 6. Upload Report
