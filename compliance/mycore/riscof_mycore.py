@@ -18,18 +18,16 @@ class mycore(pluginTemplate):
         self.work_dir = work_dir
         
         # --- FIX: Set these attributes so RISCOFF validation passes ---
+        # This is the part your current file is MISSING!
         self.isa_spec = os.path.abspath(self.config['ispec'])
         self.platform_spec = os.path.abspath(self.config['pspec'])
 
         # Compile Command:
         # Assumes we run from the 'compliance/' folder.
-        # ../hdl       -> Source code (Up one level, then into hdl)
-        # tb_riscof.v  -> Testbench (In current folder)
         self.compile_cmd = "iverilog -o {0}/my_sim.out -I ../hdl ../hdl/*.v tb_riscof.v"
 
     def build(self, isa_yaml, platform_yaml):
         # 2. Compile the simulator (Only once)
-        # {0} is replaced by self.work_dir
         cmd = self.compile_cmd.format(self.work_dir)
         print(f"Compiling design with: {cmd}")
         utils.shellCommand(cmd).run()
@@ -54,6 +52,5 @@ class mycore(pluginTemplate):
             utils.shellCommand(sim_cmd).run()
 
             # 5. Rename output
-            # tb_riscof.v produces 'signature.output'. We rename it to what RISCOFF expects.
             if os.path.exists(f"{test_dir}/signature.output"):
                  utils.shellCommand(f"mv {test_dir}/signature.output {test_dir}/{self.name[:-1]}.signature").run()
