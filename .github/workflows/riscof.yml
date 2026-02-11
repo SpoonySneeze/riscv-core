@@ -43,11 +43,13 @@ jobs:
         rm -rf temp_setup
 
         # --- 2. GENERATE ROBUST CONFIG.INI (Absolute Paths) ---
-        # We overwrite the config.ini with one that uses $(pwd)
-        # This prevents "Module Not Found" errors.
+        # We generate the file on the fly using $(pwd) to guarantee paths are correct.
         echo "[RISCOF]" > config.ini
         echo "ReferencePlugin = sail_cSim" >> config.ini
+        echo "ReferencePluginPath = $(pwd)/sail_cSim" >> config.ini   # Points to FOLDER
         echo "DUTPlugin = mycore" >> config.ini
+        echo "DUTPluginPath = $(pwd)/mycore" >> config.ini             # Points to FOLDER
+        echo "verbose = False" >> config.ini
         echo "" >> config.ini
         
         echo "[sail_cSim]" >> config.ini
@@ -62,6 +64,9 @@ jobs:
         echo "riscv_prefix = riscv64-unknown-elf-" >> config.ini
 
         # --- 3. RUN TESTS ---
+        # Add current directory to PYTHONPATH so python finds the modules
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        
         riscof run --config=config.ini --suite=../riscv-arch-test/riscv-test-suite/ --env=../riscv-arch-test/riscv-test-suite/env --no-browser
         
     # 6. Upload Report
