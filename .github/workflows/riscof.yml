@@ -34,7 +34,7 @@ jobs:
       run: |
         cd compliance
         # Initialize the reference plugin (sail_cSim) properly
-        riscof setup --dut mycore --ref sail_cSim
+        riscof setup --dutname=mycore --refname=sail_cSim
         # Overwrite the template config with ours
         cp config.ini riscof_work/config.ini
         # Run
