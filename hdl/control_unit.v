@@ -98,9 +98,13 @@ module control_unit(
 
             // JAL
             7'b1101111: begin
-                jump = 1; reg_write = 1; 
-                // ALU not used for JAL target, but usually writes PC+4.
-                // Our Datapath handles PC+4 in the WB stage muxing logic (execute_stage output)
+                jump = 1;
+                reg_write = 1;
+                
+                // FIX: Configure ALU to calculate Target (PC + Imm)
+                alu_src = 1;      // Input B = Immediate
+                op_a_sel = 2'b01; // Input A = PC
+                alu_op = 2'b00;   // Operation = ADD
             end
             
             // JALR
