@@ -34,20 +34,34 @@ jobs:
       run: |
         cd compliance
         
-        # --- SAFE SETUP START ---
-        # Create Reference Plugin (Sail) in a temp folder to avoid overwriting files
+        # --- 1. SETUP REFERENCE PLUGIN ---
         mkdir temp_setup
         cd temp_setup
         riscof setup --dutname=dummy --refname=sail_cSim
         cd ..
         mv temp_setup/sail_cSim .
         rm -rf temp_setup
-        # --- SAFE SETUP END ---
 
-        # FIX: Add current directory to Python Path so it finds 'sail_cSim'
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        # --- 2. GENERATE ROBUST CONFIG.INI (Absolute Paths) ---
+        # We overwrite the config.ini with one that uses $(pwd)
+        # This prevents "Module Not Found" errors.
+        echo "[RISCOF]" > config.ini
+        echo "ReferencePlugin = sail_cSim" >> config.ini
+        echo "DUTPlugin = mycore" >> config.ini
+        echo "" >> config.ini
+        
+        echo "[sail_cSim]" >> config.ini
+        echo "pluginpath = $(pwd)/sail_cSim" >> config.ini
+        echo "" >> config.ini
+        
+        echo "[mycore]" >> config.ini
+        echo "pluginpath = $(pwd)/mycore" >> config.ini
+        echo "ispec = $(pwd)/mycore/riscv_isa.yaml" >> config.ini
+        echo "pspec = $(pwd)/mycore/riscv_platform.yaml" >> config.ini
+        echo "target_run = 1" >> config.ini
+        echo "riscv_prefix = riscv64-unknown-elf-" >> config.ini
 
-        # Run with --no-browser since we are in CI
+        # --- 3. RUN TESTS ---
         riscof run --config=config.ini --suite=../riscv-arch-test/riscv-test-suite/ --env=../riscv-arch-test/riscv-test-suite/env --no-browser
         
     # 6. Upload Report
