@@ -35,6 +35,7 @@ jobs:
         cd compliance
         
         # --- SAFE SETUP START ---
+        # Create Reference Plugin (Sail) in a temp folder to avoid overwriting files
         mkdir temp_setup
         cd temp_setup
         riscof setup --dutname=dummy --refname=sail_cSim
@@ -46,9 +47,9 @@ jobs:
         # FIX: Add current directory to Python Path so it finds 'sail_cSim'
         export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-        # Run
+        # Run with --no-browser since we are in CI
         riscof run --config=config.ini --suite=../riscv-arch-test/riscv-test-suite/ --env=../riscv-arch-test/riscv-test-suite/env --no-browser
-
+        
     # 6. Upload Report
     - name: Upload Artifacts
       if: always()
