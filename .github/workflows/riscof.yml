@@ -1,0 +1,49 @@
+name: RISC-V Compliance
+
+on: [push, pull_request]
+
+jobs:
+  compliance-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. Checkout your code
+    - uses: actions/checkout@v3
+
+    # 2. Install Tools (Icarus & GCC)
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y iverilog gcc-riscv64-unknown-elf python3-pip
+
+    # 3. Install RISCOFF and SAIL (Reference Model)
+    - name: Install RISCOFF & Sail
+      run: |
+        pip3 install riscof
+        # We need the sail emulator for the reference model
+        # (This is a simplified setup using pre-built binaries if available, 
+        #  or we fallback to SPIKE if SAIL is too heavy. For now, let's use standard riscof setup)
+        riscof --help
+
+    # 4. Clone Architecture Tests
+    - name: Clone Tests
+      run: git clone https://github.com/riscv-non-isa/riscv-arch-test.git
+
+    # 5. Run Compliance
+    - name: Run RISCOFF
+      run: |
+        cd compliance
+        # Initialize the reference plugin (sail_cSim) properly
+        riscof setup --dut mycore --ref sail_cSim
+        # Overwrite the template config with ours
+        cp config.ini riscof_work/config.ini
+        # Run
+        riscof run --config=config.ini --suite=../riscv-arch-test/riscv-test-suite/ --env=../riscv-arch-test/riscv-test-suite/env
+
+    # 6. Upload Report
+    - name: Upload Artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compliance-report
+        path: compliance/riscof_work/report.html
