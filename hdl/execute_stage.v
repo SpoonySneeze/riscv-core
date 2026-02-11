@@ -141,7 +141,8 @@ module execute_stage(
     
     wire [31:0] branch_adder_result = ex_pc_plus_4 + ex_immediate - 32'd4;
     
-    assign branch_target_addr_out = (ex_Jump) ? alu_result : branch_adder_result;
+    // FORCE LSB TO 0 to satisfy RISC-V Spec for JALR
+    assign branch_target_addr_out = (ex_Jump) ? {alu_result[31:1], 1'b0} : branch_adder_result;
     
     always @(*)begin
         // Branch Condition Check
