@@ -58,8 +58,9 @@ jobs:
         
         echo "[mycore]" >> config.ini
         echo "pluginpath = $(pwd)/mycore" >> config.ini
-        echo "ispec = $(pwd)/mycore/riscv_isa.yaml" >> config.ini
-        echo "pspec = $(pwd)/mycore/riscv_platform.yaml" >> config.ini
+        # --- FIX: Use correct keys matching your updated python script ---
+        echo "isa_spec = $(pwd)/mycore/riscv_isa.yaml" >> config.ini
+        echo "platform_spec = $(pwd)/mycore/riscv_platform.yaml" >> config.ini
         echo "target_run = 1" >> config.ini
         echo "riscv_prefix = riscv64-unknown-elf-" >> config.ini
 
