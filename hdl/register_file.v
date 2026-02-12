@@ -9,16 +9,15 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: 32x32 Register File with Internal Forwarding
 // 
 // Dependencies: 
 // 
 // Revision:
-// Revision 0.01 - File Created
+// Revision 0.02 - Added Internal Forwarding to fix WB-ID Hazard
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
 
 module register_file(
     input wire clk,
@@ -32,30 +31,31 @@ module register_file(
     output wire [31:0] read_data_2
     );
     
-    //The register file must have 32 entries (0 to 31).
+    // 32 Registers of 32-bit width
     reg [31:0] registers [0:31];
-    
     integer i;
 
-    // Synchronous write port logic
+    // Synchronous Write Logic
     always @(posedge clk) begin
-        // CORRECTION 2: Use a 'for' loop to reset all 32 registers.
         if (reset) begin
             for (i = 0; i < 32; i = i + 1) begin
                 registers[i] <= 32'b0;
             end
         end else begin
-            // It checks for write enable and ensures we don't write to x0.
             if (write_enable && write_reg != 5'b0) begin
                 registers[write_reg] <= write_data;
             end
         end
     end
     
-    // Asynchronous read ports
-    // logic to enforce that reading register 0 always returns 0.
-    // This is the "hardwired to zero" feature of x0.
-    assign read_data_1 = (read_reg_1 == 5'b0) ? 32'b0 : registers[read_reg_1];
-    assign read_data_2 = (read_reg_2 == 5'b0) ? 32'b0 : registers[read_reg_2];
+    // Asynchronous Read Logic with INTERNAL FORWARDING
+    // If the register being read is the same one being written THIS cycle,
+    // bypass the register array and output the write_data directly.
     
+    assign read_data_1 = (read_reg_1 == 5'b0) ? 32'b0 :
+                         ((read_reg_1 == write_reg && write_enable) ? write_data : registers[read_reg_1]);
+
+    assign read_data_2 = (read_reg_2 == 5'b0) ? 32'b0 :
+                         ((read_reg_2 == write_reg && write_enable) ? write_data : registers[read_reg_2]);
+
 endmodule

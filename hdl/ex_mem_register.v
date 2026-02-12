@@ -35,6 +35,7 @@ module ex_mem_register(
     input wire [4:0] ex_rs1,
     input wire [4:0] ex_rs2,
     input wire [4:0] ex_rd,
+    input wire [2:0] ex_funct3,
     
     // Execute stage produced values
     input wire [31:0] ex_alu_result,
@@ -51,6 +52,7 @@ module ex_mem_register(
     output reg [4:0] mem_rs1,
     output reg [4:0] mem_rs2,
     output reg [4:0] mem_rd,
+    output reg [2:0] mem_funct3,
     
     // Execute stage outputs
     output reg [31:0] mem_alu_result,
@@ -74,6 +76,7 @@ module ex_mem_register(
             mem_write_data <= 32'b0;
             mem_zero_flag  <= 1'b0;
             mem_rd         <= 5'b0;
+            mem_funct3 <= 3'b0;
         end
         else begin
             // In normal operation, simply pass the inputs through to the registers.
@@ -85,6 +88,7 @@ module ex_mem_register(
             mem_rs1 <= ex_rs1;
             mem_rs2 <= ex_rs2;
             mem_rd <= ex_rd;
+            mem_funct3 <= ex_funct3;
             
             mem_alu_result <= ex_alu_result;
             mem_write_data <= ex_write_data;

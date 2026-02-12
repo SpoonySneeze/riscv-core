@@ -54,6 +54,7 @@ module execute_stage(
     output wire [31:0] mem_write_data_out, 
     output wire mem_zero_flag_out,
     output wire [4:0] mem_rd_out,
+    output wire [2:0] mem_funct3_out,
 
     // Outputs for PC Mux
     output wire [31:0] branch_target_addr_out,
@@ -180,5 +181,6 @@ module execute_stage(
     assign mem_write_data_out = forwarded_operand_b; 
     assign mem_zero_flag_out = zero_flag;
     assign mem_rd_out = ex_rd;
+    assign mem_funct3_out = ex_funct3;
 
 endmodule

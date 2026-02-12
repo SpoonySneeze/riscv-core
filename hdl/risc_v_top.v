@@ -9,12 +9,12 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: Top Level Module for RISC-V 5-Stage Pipelined Processor
 // 
-// Dependencies: 
+// Dependencies: All stage modules and pipeline registers
 // 
 // Revision:
-// Revision 0.01 - File Created
+// Revision 0.02 - Added funct3 wiring for Load/Store Byte/Halfword support
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ module risc_v_top(
     // Control Signals (ID)
     wire id_RegWrite, id_MemtoReg, id_MemRead, id_MemWrite;
     wire id_Branch, id_ALUSrc, id_Jump;
-    wire [1:0] id_op_a_sel;  // <--- NEW WIRE
+    wire [1:0] id_op_a_sel;
     wire [1:0] id_ALUOp;
 
     // --- EX Stage ---
@@ -64,7 +64,7 @@ module risc_v_top(
     
     // Control Signals (EX)
     wire ex_RegWrite, ex_MemtoReg, ex_MemRead, ex_MemWrite, ex_Branch, ex_ALUSrc, ex_Jump;
-    wire [1:0] ex_op_a_sel;  // <--- NEW WIRE
+    wire [1:0] ex_op_a_sel; 
     wire [1:0] ex_ALUOp;
 
     // --- Hazard & Forwarding Wires ---
@@ -87,6 +87,10 @@ module risc_v_top(
     wire mem_RegWrite_in, mem_MemtoReg_in, mem_MemWrite_in, mem_MemRead_in;
     wire mem_zero_flag_in, mem_zero_flag_unused;
     wire [4:0] mem_rs1_unused, mem_rs2_unused; 
+    
+    // --- NEW WIRES: Funct3 Propagation for Memory Access Size ---
+    wire [2:0] mem_funct3_in;  // Output from EX Stage
+    wire [2:0] mem_funct3_out; // Output from EX/MEM Register
 
     // --- WB Stage ---
     wire wb_RegWrite, wb_MemtoReg;
@@ -146,7 +150,7 @@ module risc_v_top(
         .mem_write(id_MemWrite),
         .branch(id_Branch),
         .jump(id_Jump),
-        .op_a_sel(id_op_a_sel), // <--- CONNECTED
+        .op_a_sel(id_op_a_sel),
         .alu_src(id_ALUSrc),
         .alu_op(id_ALUOp),
         .read_data_1(id_read_data_1),
@@ -180,7 +184,7 @@ module risc_v_top(
         .id_MemWrite(id_MemWrite),
         .id_Branch(id_Branch), 
         .id_Jump(id_Jump),
-        .id_op_a_sel(id_op_a_sel), // <--- CONNECTED
+        .id_op_a_sel(id_op_a_sel),
         .id_ALUSrc(id_ALUSrc), 
         .id_ALUOp(id_ALUOp),
         
@@ -200,7 +204,7 @@ module risc_v_top(
         .ex_MemWrite(ex_MemWrite),
         .ex_Branch(ex_Branch), 
         .ex_Jump(ex_Jump),
-        .ex_op_a_sel(ex_op_a_sel), // <--- CONNECTED
+        .ex_op_a_sel(ex_op_a_sel),
         .ex_ALUSrc(ex_ALUSrc), 
         .ex_ALUOp(ex_ALUOp),
         .ex_read_data_1(ex_read_data_1), 
@@ -234,7 +238,7 @@ module risc_v_top(
         .ex_MemtoReg(ex_MemtoReg),
         .ex_Branch(ex_Branch), 
         .ex_Jump(ex_Jump),
-        .ex_op_a_sel(ex_op_a_sel), // <--- CONNECTED
+        .ex_op_a_sel(ex_op_a_sel),
         .ex_MemRead(ex_MemRead),
         .ex_MemWrite(ex_MemWrite), 
         .ex_ALUSrc(ex_ALUSrc),
@@ -261,7 +265,10 @@ module risc_v_top(
         .mem_zero_flag_out(mem_zero_flag_in),
         .mem_rd_out(mem_rd_in),
         .branch_target_addr_out(branch_target_addr),
-        .branch_taken_out(branch_taken)
+        .branch_taken_out(branch_taken),
+        
+        // NEW OUTPUT CONNECTION
+        .mem_funct3_out(mem_funct3_in) 
     );
 
     ex_mem_register EX_MEM_REG (
@@ -278,6 +285,9 @@ module risc_v_top(
         .ex_write_data(mem_write_data_in),
         .ex_zero_flag(mem_zero_flag_in),
         
+        // NEW INPUT CONNECTION
+        .ex_funct3(mem_funct3_in),
+        
         .mem_RegWrite(mem_RegWrite), 
         .mem_MemtoReg(mem_MemtoReg),
         .mem_MemWrite(mem_MemWrite), 
@@ -287,7 +297,10 @@ module risc_v_top(
         .mem_rd(mem_rd),
         .mem_alu_result(mem_alu_result),
         .mem_write_data(mem_write_data),
-        .mem_zero_flag(mem_zero_flag_unused)
+        .mem_zero_flag(mem_zero_flag_unused),
+        
+        // NEW OUTPUT CONNECTION
+        .mem_funct3(mem_funct3_out) 
     );
 
     data_memory DMEM (
@@ -295,6 +308,8 @@ module risc_v_top(
         .reset(reset),
         .MemWrite(mem_MemWrite),
         .MemRead(mem_MemRead),
+        // NEW INPUT CONNECTION
+        .funct3(mem_funct3_out), 
         .address(mem_alu_result),
         .write_data(mem_write_data),
         .read_data(mem_read_data)
