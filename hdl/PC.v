@@ -28,7 +28,7 @@ module PC(
     );
     reg [31:0] addr;
     always@(posedge clk)begin
-        if(reset) addr <= 32'b0;
+        if(reset) addr <= 32'h80000000;
         else addr <= next_pc;
     end
     assign current_pc = addr;
