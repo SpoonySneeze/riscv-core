@@ -9,19 +9,20 @@ class mycore(pluginTemplate):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 1. Capture the config so we can read paths later
         self.config = kwargs.get('config')
+
+        # --- FIX 1: Defined in __init__ (Required by RISCOF) ---
+        # --- FIX 2: Using the correct keys 'isa_spec' and 'platform_spec' ---
+        # These match the changes you made in config.ini
+        self.isa_spec = os.path.abspath(self.config['isa_spec'])
+        self.platform_spec = os.path.abspath(self.config['platform_spec'])
+        
         # Default to standard prefix if not found
         self.riscv_prefix = self.config.get('riscv_prefix', 'riscv64-unknown-elf-')
 
     def initialise(self, suite, work_dir, archtest_env):
         self.work_dir = work_dir
         
-        # --- FIX: Set these attributes so RISCOFF validation passes ---
-        # This is the part your current file is MISSING!
-        self.isa_spec = os.path.abspath(self.config['ispec'])
-        self.platform_spec = os.path.abspath(self.config['pspec'])
-
         # Compile Command:
         # Assumes we run from the 'compliance/' folder.
         self.compile_cmd = "iverilog -o {0}/my_sim.out -I ../hdl ../hdl/*.v tb_riscof.v"
@@ -52,5 +53,6 @@ class mycore(pluginTemplate):
             utils.shellCommand(sim_cmd).run()
 
             # 5. Rename output
+            # Note: Ensure self.name is set correctly or use a fixed name like 'mycore'
             if os.path.exists(f"{test_dir}/signature.output"):
                  utils.shellCommand(f"mv {test_dir}/signature.output {test_dir}/{self.name[:-1]}.signature").run()
