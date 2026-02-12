@@ -1,5 +1,17 @@
+hart_ids: [0]
 hart0:
   ISA: RV32I
   physical_addr_sz: 32
-  User_Spec_Version: "2.3"
+  # User Spec Version 2.2 is standard for base 32I. 
+  # "2.3" is often flagged as invalid/deprecated by newer tools.
+  User_Spec_Version: "2.2"
   supported_xlen: [32]
+  # We need to define the Privileged Spec version to avoid the next error
+  priv_spec:
+    major: 1
+    minor: 10
+  # MISA register configuration (Machine ISA)
+  misa:
+    MXL: 1
+    Extensions:
+      bitmask: 0x0
