@@ -34,10 +34,11 @@ module data_memory(
     output reg [31:0] read_data     
 );
 
-    reg [31:0] memory [0:1023];
+    // Change 1023 to 16383 (64KB)
+reg [31:0] memory [0:16383];
     integer i;
 
-    wire [9:0] word_addr = address[11:2];
+wire [13:0] word_addr = address[15:2];
     wire [1:0] byte_offset = address[1:0]; // Check which byte (0,1,2,3) we are accessing
 
     // --- READ LOGIC (Combinational) ---
@@ -92,7 +93,7 @@ module data_memory(
     // --- WRITE LOGIC (Synchronous) ---
     always @(posedge clk) begin
         if (reset) begin
-            for (i = 0; i < 1024; i = i + 1) memory[i] <= 32'b0;
+            for (i = 0; i < 16384; i = i + 1) memory[i] <= 32'b0;
         end
         else if (MemWrite) begin
             case (funct3)
